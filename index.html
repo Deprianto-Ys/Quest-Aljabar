@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Algebra Quest & Quiz Master - Game Matematika Aljabar</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            display: ['Fredoka', 'cursive'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+            },
+            quest: {
+              purple: '#8b5cf6',
+              dark: '#0f172a',
+              card: '#1e293b',
+              accent: '#f59e0b',
+            }
+          },
+          animation: {
+            'float': 'float 3s ease-in-out infinite',
+            'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
+            'shake': 'shake 0.4s cubic-bezier(.36,.07,.19,.97) both',
+            'bounce-subtle': 'bounceSubtle 1.2s infinite',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-10px)' },
+            },
+            pulseGlow: {
+              '0%, 100%': { filter: 'drop-shadow(0 0 12px rgba(139, 92, 246, 0.4))' },
+              '50%': { filter: 'drop-shadow(0 0 24px rgba(245, 158, 11, 0.7))' },
+            },
+            shake: {
+              '10%, 90%': { transform: 'translate3d(-2px, 0, 0)' },
+              '20%, 80%': { transform: 'translate3d(4px, 0, 0)' },
+              '30%, 50%, 70%': { transform: 'translate3d(-6px, 0, 0)' },
+              '40%, 60%': { transform: 'translate3d(6px, 0, 0)' },
+            },
+            bounceSubtle: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-4px)' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #0b0f19;
+      background-image: 
+        radial-gradient(at 10% 10%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+        radial-gradient(at 90% 90%, rgba(34, 197, 94, 0.12) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(245, 158, 11, 0.08) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: #f8fafc;
+      user-select: none;
+    }
+
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .glass-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.25s ease;
+    }
+
+    .glass-card:hover {
+      border-color: rgba(139, 92, 246, 0.4);
+      transform: translateY(-3px);
+    }
+
+    /* Particle Overlay Canvas */
+    #particle-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Health Bar Transition */
+    .hp-bar-fill {
+      transition: width 0.4s ease-in-out, background-color 0.4s ease;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans overflow-x-hidden">
+
+  <canvas id="particle-canvas"></canvas>
+
+  <!-- Navigation Header -->
+  <header class="w-full max-w-6xl mx-auto px-4 py-4 flex items-center justify-between z-20">
+    <div class="flex items-center space-x-3 cursor-pointer" onclick="showScreen('screen-main-menu')">
+      <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-500 to-amber-400 p-0.5 shadow-lg shadow-purple-500/30">
+        <div class="w-full h-full bg-slate-900 rounded-[14px] flex items-center justify-center text-2xl">
+          📐
+        </div>
+      </div>
+      <div>
+        <h1 class="font-display font-extrabold text-2xl bg-gradient-to-r from-amber-300 via-purple-300 to-emerald-300 bg-clip-text text-transparent">
+          Algebra Quest
+        </h1>
+        <p class="text-xs text-slate-400 font-medium">Math Quiz & RPG Adventure</p>
+      </div>
+    </div>
+
+    <!-- Header Stats & Controls -->
+    <div class="flex items-center space-x-3">
+      <!-- Player Level & XP Badge -->
+      <div class="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-xl glass-card text-xs font-semibold">
+        <span class="text-amber-400">⭐ Lv.<span id="user-level">1</span></span>
+        <span class="text-slate-500">|</span>
+        <span class="text-emerald-400"><span id="user-xp">0</span> XP</span>
+      </div>
+
+      <!-- Sound Toggle Button -->
+      <button id="btn-audio" onclick="toggleAudio()" class="w-10 h-10 rounded-xl glass-card flex items-center justify-center text-lg text-slate-300 hover:text-white transition" title="Toggle Suara">
+        🔊
+      </button>
+
+      <!-- Materi Guide Button -->
+      <button onclick="showScreen('screen-materi')" class="px-3.5 py-2 rounded-xl bg-purple-600/80 hover:bg-purple-500 text-white text-xs md:text-sm font-semibold shadow-lg shadow-purple-600/30 transition flex items-center space-x-1.5">
+        <span>📚</span>
+        <span class="hidden sm:inline">Materi Rumus</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 w-full max-w-5xl mx-auto px-4 py-4 z-10 flex flex-col justify-center">
+
+    <!-- 1. MAIN MENU SCREEN -->
+    <div id="screen-main-menu" class="space-y-6 text-center py-6">
+      <div class="space-y-3">
+        <span class="inline-block px-4 py-1.5 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/30 text-xs font-bold uppercase tracking-widest font-display">
+          Game Pembelajaran Aljabar Interaktif
+        </span>
+        <h2 class="text-4xl md:text-5xl font-display font-extrabold text-white tracking-wide">
+          Kuasai Aljabar Jadi Lebih Seru!
+        </h2>
+        <p class="text-slate-300 max-w-xl mx-auto text-sm md:text-base">
+          Pilih mode permainan: Bertarung dalam RPG petualangan aljabar, uji kecepatan dalam kuis waktu, atau pelajari modul rumus lengkap!
+        </p>
+      </div>
+
+      <!-- Mode Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto pt-4">
+        
+        <!-- RPG Battle Mode -->
+        <div onclick="startRpgMode()" class="glass-card p-6 rounded-3xl cursor-pointer group text-left border-2 border-amber-500/30 hover:border-amber-400 relative overflow-hidden">
+          <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-amber-500/10 rounded-full blur-xl group-hover:bg-amber-500/20 transition"></div>
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center text-3xl mb-4 shadow-lg shadow-amber-500/30 group-hover:scale-110 transition">
+            ⚔️
+          </div>
+          <span class="text-xs font-bold text-amber-400 uppercase tracking-wider font-display">RPG Battle</span>
+          <h3 class="text-xl font-display font-bold text-white mt-1 mb-2">Petualangan Monster</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Kalahkan monster aljabar dengan menjawab soal! Raih Critical Hit & serang musuh.
+          </p>
+          <div class="mt-4 flex items-center text-xs font-bold text-amber-300 group-hover:translate-x-1 transition">
+            Mulai Bertarung &rarr;
+          </div>
+        </div>
+
+        <!-- Speed Quiz Mode -->
+        <div onclick="startQuizMode()" class="glass-card p-6 rounded-3xl cursor-pointer group text-left border-2 border-emerald-500/30 hover:border-emerald-400 relative overflow-hidden">
+          <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition"></div>
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-3xl mb-4 shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition">
+            ⚡
+          </div>
+          <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider font-display">Speed Quiz</span>
+          <h3 class="text-xl font-display font-bold text-white mt-1 mb-2">Kuis Pacu Waktu</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Uji kecepatan menjawab soal aljabar acak sebelum waktu habis. Dapatkan Combo Multiplier!
+          </p>
+          <div class="mt-4 flex items-center text-xs font-bold text-emerald-300 group-hover:translate-x-1 transition">
+            Mulai Kuis &rarr;
+          </div>
+        </div>
+
+        <!-- Modul & Rumus Mode -->
+        <div onclick="showScreen('screen-materi')" class="glass-card p-6 rounded-3xl cursor-pointer group text-left border-2 border-purple-500/30 hover:border-purple-400 relative overflow-hidden">
+          <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-purple-500/10 rounded-full blur-xl group-hover:bg-purple-500/20 transition"></div>
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-400 to-indigo-600 flex items-center justify-center text-3xl mb-4 shadow-lg shadow-purple-500/30 group-hover:scale-110 transition">
+            📖
+          </div>
+          <span class="text-xs font-bold text-purple-400 uppercase tracking-wider font-display">E-Modul</span>
+          <h3 class="text-xl font-display font-bold text-white mt-1 mb-2">Materi & Rumus</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Pelajari konsep Suku Sejenis, PLSV, PtLSV, Faktorisasi, hingga SPLDV dengan contoh interaktif.
+          </p>
+          <div class="mt-4 flex items-center text-xs font-bold text-purple-300 group-hover:translate-x-1 transition">
+            Buka Materi &rarr;
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Topic Quick Selector -->
+      <div class="glass-panel p-4 rounded-2xl max-w-2xl mx-auto mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+        <span class="font-semibold text-slate-300">Pilih Topik Soal Khusus:</span>
+        <select id="topic-selector" class="bg-slate-900 border border-slate-700 text-purple-300 font-bold rounded-xl px-3 py-2 focus:outline-none focus:border-purple-500 w-full sm:w-auto">
+          <option value="ALL">Semua Topik Aljabar (Acak)</option>
+          <option value="SIMPLIFY">Suku Sejenis & Penyederhanaan</option>
+          <option value="PLSV">Persamaan Linear 1 Variabel (PLSV)</option>
+          <option value="PTLSV">Pertidaksamaan Linear (PtLSV)</option>
+          <option value="FACTOR">Faktorisasi & Perkalian Aljabar</option>
+          <option value="SPLDV">Sistem Persamaan 2 Variabel (SPLDV)</option>
+        </select>
+      </div>
+    </div>
+
+
+    <!-- 2. RPG BATTLE GAME SCREEN -->
+    <div id="screen-rpg" class="hidden space-y-4">
+      <!-- Battle Stage Header -->
+      <div class="glass-panel p-4 rounded-2xl flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <button onclick="showScreen('screen-main-menu')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 border border-slate-700">
+            &larr; Keluar
+          </button>
+          <div>
+            <h3 id="rpg-stage-title" class="font-display font-bold text-lg text-amber-300">
+              Stage 1: Goblin Persamaan
+            </h3>
+            <p id="rpg-topic-name" class="text-xs text-slate-400">Topik: PLSV Dasar</p>
+          </div>
+        </div>
+        <div class="text-right">
+          <div class="text-xs text-slate-400">Skor Petualangan</div>
+          <div id="rpg-score" class="font-display font-extrabold text-xl text-emerald-400">0</div>
+        </div>
+      </div>
+
+      <!-- Arena View (Hero vs Monster) -->
+      <div class="glass-panel p-6 rounded-3xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 min-h-[220px]">
+        <!-- Hero Box -->
+        <div class="flex items-center space-x-4 w-full md:w-1/2 bg-slate-900/60 p-4 rounded-2xl border border-indigo-500/20">
+          <div class="text-5xl animate-bounce-subtle">🧙‍♂️</div>
+          <div class="flex-1 space-y-2">
+            <div class="flex justify-between text-xs font-bold">
+              <span class="text-indigo-300">Pahlawan Aljabar</span>
+              <span id="hero-hp-text" class="text-emerald-400">100 / 100 HP</span>
+            </div>
+            <div class="w-full h-3 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+              <div id="hero-hp-bar" class="h-full bg-emerald-500 hp-bar-fill w-full"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VS Badge -->
+        <div class="font-display font-black text-2xl text-amber-400 px-3 py-1 bg-slate-950 rounded-full border border-amber-500/40 animate-pulse-glow">
+          VS
+        </div>
+
+        <!-- Monster Box -->
+        <div class="flex items-center space-x-4 w-full md:w-1/2 bg-slate-900/60 p-4 rounded-2xl border border-rose-500/20">
+          <div id="monster-sprite" class="text-5xl animate-float transition-transform">👺</div>
+          <div class="flex-1 space-y-2">
+            <div class="flex justify-between text-xs font-bold">
+              <span id="monster-name" class="text-rose-300">Goblin Persamaan</span>
+              <span id="monster-hp-text" class="text-rose-400">50 / 50 HP</span>
+            </div>
+            <div class="w-full h-3 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+              <div id="monster-hp-bar" class="h-full bg-rose-500 hp-bar-fill w-full"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Question Challenge Panel -->
+      <div id="rpg-question-box" class="glass-panel p-6 rounded-3xl space-y-6">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <span class="text-xs font-bold text-amber-400 font-display uppercase tracking-wider">Soal Serangan</span>
+          <span id="rpg-timer" class="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30">
+            Waktu Jawab: 30s
+          </span>
+        </div>
+
+        <!-- Question Text -->
+        <div class="text-center py-2">
+          <h4 id="rpg-question-text" class="font-display font-extrabold text-2xl md:text-3xl text-white tracking-wide">
+            Selesaikan: 2x + 5 = 15
+          </h4>
+          <p id="rpg-hint-text" class="text-xs text-slate-400 mt-2 italic">
+            Petunjuk: Kurangi kedua ruas dengan 5, lalu bagi dengan 2.
+          </p>
+        </div>
+
+        <!-- Answer Options -->
+        <div id="rpg-options-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <!-- Options dynamically rendered via JS -->
+        </div>
+      </div>
+    </div>
+
+
+    <!-- 3. SPEED QUIZ SCREEN -->
+    <div id="screen-quiz" class="hidden space-y-4">
+      <div class="glass-panel p-4 rounded-2xl flex items-center justify-between">
+        <button onclick="showScreen('screen-main-menu')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 border border-slate-700">
+          &larr; Keluar
+        </button>
+        <div class="flex items-center space-x-4">
+          <div class="text-center">
+            <span class="text-xs text-slate-400">Combo</span>
+            <div id="quiz-streak" class="font-display font-extrabold text-lg text-amber-400">x1</div>
+          </div>
+          <div class="text-center">
+            <span class="text-xs text-slate-400">Skor</span>
+            <div id="quiz-score" class="font-display font-extrabold text-xl text-emerald-400">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quiz Question Card -->
+      <div class="glass-panel p-6 md:p-8 rounded-3xl space-y-6">
+        <!-- Progress & Timer Bar -->
+        <div class="space-y-2">
+          <div class="flex justify-between text-xs font-bold">
+            <span id="quiz-progress-text" class="text-purple-300">Soal 1 dari 10</span>
+            <span id="quiz-timer-text" class="text-amber-400 font-mono">Sisa Waktu: 60s</span>
+          </div>
+          <div class="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+            <div id="quiz-timer-bar" class="h-full bg-gradient-to-r from-emerald-400 to-amber-400 w-full transition-all duration-1000"></div>
+          </div>
+        </div>
+
+        <!-- Question Display -->
+        <div class="text-center py-4 space-y-2">
+          <span id="quiz-topic-badge" class="inline-block px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold">
+            PLSV
+          </span>
+          <h3 id="quiz-question-text" class="font-display font-extrabold text-2xl md:text-3xl text-white tracking-wide">
+            Nilai x dari 3x - 4 = 11 adalah...
+          </h3>
+        </div>
+
+        <!-- Answer Options -->
+        <div id="quiz-options-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+    </div>
+
+
+    <!-- 4. MATERI & RUMUS MODUL SCREEN -->
+    <div id="screen-materi" class="hidden space-y-6">
+      <div class="flex items-center justify-between">
+        <button onclick="showScreen('screen-main-menu')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 border border-slate-700">
+          &larr; Kembali ke Menu
+        </button>
+        <h2 class="font-display font-extrabold text-2xl text-purple-300">
+          📚 Modul & Ringkasan Aljabar
+        </h2>
+      </div>
+
+      <!-- Accordion / Tabs Materi -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Topic 1: Bentuk Aljabar & Suku Sejenis -->
+        <div class="glass-card p-6 rounded-3xl space-y-3 border-l-4 border-indigo-500">
+          <div class="flex items-center space-x-2">
+            <span class="text-2xl">🧩</span>
+            <h3 class="font-display font-bold text-lg text-white">1. Bentuk Aljabar & Suku Sejenis</h3>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Bentuk aljabar terdiri dari <b>variabel</b> (huruf), <b>koefisien</b> (angka di depan variabel), dan <b>konstanta</b> (angka mandiri).
+          </p>
+          <div class="bg-slate-950 p-3 rounded-xl text-xs font-mono text-indigo-300 border border-slate-800">
+            Contoh: $3x + 5y - 2$<br>
+            • Koefisien $x = 3$, Koefisien $y = 5$<br>
+            • Konstanta $= -2$<br>
+            • <b>Suku sejenis</b> memiliki variabel & pangkat yang persis sama (misal: $4x$ dan $-2x$).
+          </div>
+        </div>
+
+        <!-- Topic 2: PLSV -->
+        <div class="glass-card p-6 rounded-3xl space-y-3 border-l-4 border-emerald-500">
+          <div class="flex items-center space-x-2">
+            <span class="text-2xl">⚖️</span>
+            <h3 class="font-display font-bold text-lg text-white">2. Persamaan Linear (PLSV)</h3>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Kalimat terbuka berpangkat satu yang dihubungkan dengan tanda sama dengan ($=$). Prinsip utamanya adalah memperlakukan kedua ruas secara seimbang.
+          </p>
+          <div class="bg-slate-950 p-3 rounded-xl text-xs font-mono text-emerald-300 border border-slate-800">
+            Aturan Timbangan:<br>
+            $2x + 6 = 14$<br>
+            $\rightarrow 2x = 14 - 6$ (Kurangi kedua ruas 6)<br>
+            $\rightarrow 2x = 8 \rightarrow x = 4$ (Bagi kedua ruas 2)
+          </div>
+        </div>
+
+        <!-- Topic 3: PtLSV -->
+        <div class="glass-card p-6 rounded-3xl space-y-3 border-l-4 border-amber-500">
+          <div class="flex items-center space-x-2">
+            <span class="text-2xl">📐</span>
+            <h3 class="font-display font-bold text-lg text-white">3. Pertidaksamaan Linear (PtLSV)</h3>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Menggunakan tanda $<, >, \le, \ge$. <b>Catatan Penting:</b> Jika dikali/dibagi dengan bilangan negatif, arah tanda pertidaksamaan wajib dibalik!
+          </p>
+          <div class="bg-slate-950 p-3 rounded-xl text-xs font-mono text-amber-300 border border-slate-800">
+            Contoh:<br>
+            $-3x < 12$<br>
+            $\rightarrow x > \frac{12}{-3} \rightarrow x > -4$ (Tanda dibalik dari $<$ menjadi $>$)
+          </div>
+        </div>
+
+        <!-- Topic 4: Perkalian & Pemfaktoran -->
+        <div class="glass-card p-6 rounded-3xl space-y-3 border-l-4 border-rose-500">
+          <div class="flex items-center space-x-2">
+            <span class="text-2xl">⚡</span>
+            <h3 class="font-display font-bold text-lg text-white">4. Faktorisasi & Perkalian Istimewa</h3>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Rumus-rumus penting pemfaktoran kuadrat dan perkalian suku dua:
+          </p>
+          <div class="bg-slate-950 p-3 rounded-xl text-xs font-mono text-rose-300 border border-slate-800 space-y-1">
+            • $(a+b)(a-b) = a^2 - b^2$<br>
+            • $(x+a)(x+b) = x^2 + (a+b)x + ab$<br>
+            • $(a+b)^2 = a^2 + 2ab + b^2$
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- 5. PEMBAHASAN / RESULT MODAL -->
+    <div id="modal-review" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+      <div class="glass-panel w-full max-w-lg rounded-3xl p-6 md:p-8 border border-purple-500/40 text-center space-y-5">
+        <div id="modal-icon" class="text-5xl animate-bounce-subtle">🎉</div>
+        <h3 id="modal-title" class="font-display font-extrabold text-2xl text-white">
+          Jawaban Benar!
+        </h3>
+        
+        <!-- Explanation Box -->
+        <div class="bg-slate-950 p-4 rounded-2xl text-left border border-slate-800 space-y-2">
+          <div class="text-xs font-bold text-purple-400 font-display uppercase tracking-wider">Pembahasan Lengkap:</div>
+          <div id="modal-explanation" class="text-xs text-slate-200 font-mono leading-relaxed space-y-1">
+            <!-- JS renders steps -->
+          </div>
+        </div>
+
+        <button onclick="closeReviewModal()" class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-display font-bold text-lg shadow-lg shadow-purple-600/30 transition">
+          Lanjutkan Permainan
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- JAVASCRIPT LOGIC ENGINE -->
+  <script>
+    /* Audio Synthesis Engine (Web Audio API) */
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playCorrect() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((freq, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          const startTime = this.ctx.currentTime + i * 0.07;
+          gain.gain.setValueAtTime(0.15, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.25);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(startTime);
+          osc.stop(startTime + 0.25);
+        });
+      }
+
+      playWrong() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(180, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(90, this.ctx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.3);
+      }
+
+      playAttack() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(700, this.ctx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.15);
+      }
+    }
+
+    const audio = new SoundEngine();
+
+    function toggleAudio() {
+      audio.enabled = !audio.enabled;
+      document.getElementById('btn-audio').innerText = audio.enabled ? '🔊' : '🔇';
+    }
+
+    /* Algebra Problem Procedural Generator */
+    function generateAlgebraProblem(topic) {
+      if (topic === 'ALL') {
+        const topics = ['SIMPLIFY', 'PLSV', 'PTLSV', 'FACTOR', 'SPLDV'];
+        topic = topics[Math.floor(Math.random() * topics.length)];
+      }
+
+      let problem = {
+        topic: topic,
+        question: '',
+        hint: '',
+        options: [],
+        correctIndex: 0,
+        explanation: []
+      };
+
+      if (topic === 'SIMPLIFY') {
+        // Suku Sejenis
+        const a = Math.floor(Math.random() * 6) + 2;
+        const b = Math.floor(Math.random() * 5) + 1;
+        const c = Math.floor(Math.random() * 5) + 2;
+        const sumA = a + c;
+        problem.question = `Sederhanakan bentuk aljabar: ${a}x + ${b}y + ${c}x`;
+        problem.hint = "Kelompokkan suku-suku yang variabelnya sejenis (sama).";
+        
+        const correctAns = `${sumA}x + ${b}y`;
+        const wrong1 = `${a + c + b}xy`;
+        const wrong2 = `${a}x + ${b + c}y`;
+        const wrong3 = `${sumA}x - ${b}y`;
+
+        problem.options = [correctAns, wrong1, wrong2, wrong3];
+        problem.explanation = [
+          `1. Kelompokkan suku sejenis: (${a}x + ${c}x) + ${b}y`,
+          `2. Jumlahkan koefisien x: (${a} + ${c})x = ${sumA}x`,
+          `3. Hasil akhir: ${sumA}x + ${b}y`
+        ];
+
+      } else if (topic === 'PLSV') {
+        // Persamaan Linear Satu Variabel: ax + b = c
+        const xVal = Math.floor(Math.random() * 9) + 1;
+        const a = Math.floor(Math.random() * 4) + 2;
+        const b = Math.floor(Math.random() * 10) + 1;
+        const c = a * xVal + b;
+
+        problem.question = `Nilai x dari persamaan ${a}x + ${b} = ${c} adalah...`;
+        problem.hint = `Kurangi kedua ruas dengan ${b}, lalu bagi dengan ${a}.`;
+
+        const correctAns = `x = ${xVal}`;
+        const wrong1 = `x = ${xVal + 2}`;
+        const wrong2 = `x = ${Math.max(1, xVal - 2)}`;
+        const wrong3 = `x = ${xVal * 2}`;
+
+        problem.options = [correctAns, wrong1, wrong2, wrong3];
+        problem.explanation = [
+          `1. ${a}x + ${b} = ${c}`,
+          `2. Pindahkan konstanta: ${a}x = ${c} - ${b} → ${a}x = ${c - b}`,
+          `3. Bagi dengan ${a}: x = ${c - b} ÷ ${a} → x = ${xVal}`
+        ];
+
+      } else if (topic === 'PTLSV') {
+        // Pertidaksamaan Linear: ax - b < c
+        const xLimit = Math.floor(Math.random() * 8) + 2;
+        const a = Math.floor(Math.random() * 3) + 2;
+        const b = Math.floor(Math.random() * 6) + 1;
+        const c = a * xLimit - b;
+
+        problem.question = `Penyelesaian dari ${a}x - ${b} < ${c} adalah...`;
+        problem.hint = `Tambahkan ${b} pada kedua ruas, lalu bagi dengan ${a}.`;
+
+        const correctAns = `x < ${xLimit}`;
+        const wrong1 = `x > ${xLimit}`;
+        const wrong2 = `x < ${xLimit + 3}`;
+        const wrong3 = `x ≤ ${xLimit - 1}`;
+
+        problem.options = [correctAns, wrong1, wrong2, wrong3];
+        problem.explanation = [
+          `1. ${a}x - ${b} < ${c}`,
+          `2. Tambahkan ${b}: ${a}x < ${c + b}`,
+          `3. Bagi dengan ${a}: x < ${xLimit}`
+        ];
+
+      } else if (topic === 'FACTOR') {
+        // Perkalian / Pemfaktoran: (x + p)(x + q)
+        const p = Math.floor(Math.random() * 5) + 1;
+        const q = Math.floor(Math.random() * 5) + 1;
+        const b = p + q;
+        const c = p * q;
+
+        problem.question = `Hasil perkalian dari (x + ${p})(x + ${q}) adalah...`;
+        problem.hint = "Gunakan sifat distributif: x² + (p + q)x + (p × q).";
+
+        const correctAns = `x² + ${b}x + ${c}`;
+        const wrong1 = `x² + ${c}x + ${b}`;
+        const wrong2 = `x² + ${b}x - ${c}`;
+        const wrong3 = `x² - ${b}x + ${c}`;
+
+        problem.options = [correctAns, wrong1, wrong2, wrong3];
+        problem.explanation = [
+          `1. Perkalian suku dua: x·x + x·${q} + ${p}·x + ${p}·${q}`,
+          `2. Gabungkan suku tengah: x² + (${p}+${q})x + ${c}`,
+          `3. Hasil akhir: x² + ${b}x + ${c}`
+        ];
+
+      } else {
+        // SPLDV: x + y = sum, x - y = diff
+        const x = Math.floor(Math.random() * 6) + 3;
+        const y = Math.floor(Math.random() * 4) + 1;
+        const sum = x + y;
+        const diff = x - y;
+
+        problem.question = `Jika x + y = ${sum} dan x - y = ${diff}, tentukan nilai x!`;
+        problem.hint = "Jumlahkan kedua persamaan untuk mengeliminasi y.";
+
+        const correctAns = `x = ${x}`;
+        const wrong1 = `x = ${y}`;
+        const wrong2 = `x = ${x + 2}`;
+        const wrong3 = `x = ${x + y}`;
+
+        problem.options = [correctAns, wrong1, wrong2, wrong3];
+        problem.explanation = [
+          `1. (x + y) + (x - y) = ${sum} + ${diff}`,
+          `2. 2x = ${sum + diff}`,
+          `3. x = ${sum + diff} ÷ 2 = ${x}`
+        ];
+      }
+
+      // Shuffle options while keeping track of correct index
+      const originalCorrect = problem.options[0];
+      problem.options.sort(() => Math.random() - 0.5);
+      problem.correctIndex = problem.options.indexOf(originalCorrect);
+
+      return problem;
+    }
+
+
+    /* State Management */
+    let gameState = {
+      level: 1,
+      xp: 0,
+      activeScreen: 'screen-main-menu',
+      
+      // RPG State
+      rpgStage: 1,
+      heroHp: 100,
+      heroMaxHp: 100,
+      monsterHp: 50,
+      monsterMaxHp: 50,
+      monsterName: 'Goblin Persamaan',
+      rpgScore: 0,
+      rpgCurrentProblem: null,
+      rpgTimerVal: 30,
+      rpgInterval: null,
+
+      // Quiz State
+      quizScore: 0,
+      quizStreak: 0,
+      quizQuestionCount: 0,
+      quizMaxQuestions: 10,
+      quizTimerVal: 60,
+      quizInterval: null,
+      quizCurrentProblem: null,
+
+      pendingCallback: null
+    };
+
+    function showScreen(screenId) {
+      document.querySelectorAll('main > div').forEach(div => div.classList.add('hidden'));
+      document.getElementById(screenId).classList.remove('hidden');
+      gameState.activeScreen = screenId;
+    }
+
+    function addXp(amount) {
+      gameState.xp += amount;
+      if (gameState.xp >= gameState.level * 100) {
+        gameState.level++;
+        document.getElementById('user-level').innerText = gameState.level;
+      }
+      document.getElementById('user-xp').innerText = gameState.xp;
+    }
+
+    /* ---------------- RPG BATTLE MODE ---------------- */
+    const MONSTERS = [
+      { name: 'Goblin Persamaan', sprite: '👺', hp: 50, topic: 'PLSV' },
+      { name: 'Dragon Variabel', sprite: '🐲', hp: 80, topic: 'SIMPLIFY' },
+      { name: 'Wizard Pertidaksamaan', sprite: '🧙‍♀️', hp: 110, topic: 'PTLSV' },
+      { name: 'Raja Faktorisasi', sprite: '👑', hp: 150, topic: 'FACTOR' }
+    ];
+
+    function startRpgMode() {
+      gameState.rpgStage = 1;
+      gameState.heroHp = 100;
+      gameState.rpgScore = 0;
+      loadRpgStage(0);
+      showScreen('screen-rpg');
+    }
+
+    function loadRpgStage(index) {
+      const m = MONSTERS[index % MONSTERS.length];
+      gameState.monsterName = m.name;
+      gameState.monsterHp = m.hp;
+      gameState.monsterMaxHp = m.hp;
+
+      document.getElementById('rpg-stage-title').innerText = `Stage ${index + 1}: ${m.name}`;
+      document.getElementById('rpg-topic-name').innerText = `Topik Soal: ${m.topic}`;
+      document.getElementById('monster-sprite').innerText = m.sprite;
+      document.getElementById('monster-name').innerText = m.name;
+
+      updateRpgBars();
+      nextRpgTurn();
+    }
+
+    function updateRpgBars() {
+      document.getElementById('hero-hp-text').innerText = `${Math.max(0, gameState.heroHp)} / 100 HP`;
+      document.getElementById('hero-hp-bar').style.width = `${Math.max(0, gameState.heroHp)}%`;
+
+      const mPct = (gameState.monsterHp / gameState.monsterMaxHp) * 100;
+      document.getElementById('monster-hp-text').innerText = `${Math.max(0, gameState.monsterHp)} / ${gameState.monsterMaxHp} HP`;
+      document.getElementById('monster-hp-bar').style.width = `${Math.max(0, mPct)}%`;
+      document.getElementById('rpg-score').innerText = gameState.rpgScore;
+    }
+
+    function nextRpgTurn() {
+      if (gameState.rpgInterval) clearInterval(gameState.rpgInterval);
+
+      const topicSel = document.getElementById('topic-selector').value;
+      gameState.rpgCurrentProblem = generateAlgebraProblem(topicSel);
+
+      document.getElementById('rpg-question-text').innerText = gameState.rpgCurrentProblem.question;
+      document.getElementById('rpg-hint-text').innerText = `💡 ${gameState.rpgCurrentProblem.hint}`;
+
+      const grid = document.getElementById('rpg-options-grid');
+      grid.innerHTML = '';
+
+      gameState.rpgCurrentProblem.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'p-4 rounded-2xl bg-slate-900/90 hover:bg-purple-600/30 border border-slate-700 hover:border-purple-400 font-display font-bold text-white text-lg transition transform hover:-translate-y-0.5 text-center';
+        btn.innerText = opt;
+        btn.onclick = () => handleRpgAnswer(idx);
+        grid.appendChild(btn);
+      });
+
+      gameState.rpgTimerVal = 30;
+      document.getElementById('rpg-timer').innerText = `Waktu Jawab: ${gameState.rpgTimerVal}s`;
+      gameState.rpgInterval = setInterval(() => {
+        gameState.rpgTimerVal--;
+        document.getElementById('rpg-timer').innerText = `Waktu Jawab: ${gameState.rpgTimerVal}s`;
+        if (gameState.rpgTimerVal <= 0) {
+          clearInterval(gameState.rpgInterval);
+          handleRpgAnswer(-1); // Timeout
+        }
+      }, 1000);
+    }
+
+    function handleRpgAnswer(selectedIdx) {
+      if (gameState.rpgInterval) clearInterval(gameState.rpgInterval);
+
+      const prob = gameState.rpgCurrentProblem;
+      const isCorrect = selectedIdx === prob.correctIndex;
+
+      if (isCorrect) {
+        audio.playCorrect();
+        audio.playAttack();
+        const dmg = 25 + Math.floor(gameState.rpgTimerVal / 2);
+        gameState.monsterHp -= dmg;
+        gameState.rpgScore += 100 + dmg * 2;
+        addXp(30);
+
+        // Monster Shake Anim
+        const mSprite = document.getElementById('monster-sprite');
+        mSprite.classList.add('animate-shake');
+        setTimeout(() => mSprite.classList.remove('animate-shake'), 500);
+
+      } else {
+        audio.playWrong();
+        gameState.heroHp -= 20;
+        
+        // Hero Shake Screen
+        document.getElementById('screen-rpg').classList.add('animate-shake');
+        setTimeout(() => document.getElementById('screen-rpg').classList.remove('animate-shake'), 500);
+      }
+
+      updateRpgBars();
+
+      gameState.pendingCallback = () => {
+        if (gameState.monsterHp <= 0) {
+          gameState.rpgStage++;
+          if (gameState.rpgStage > 4) {
+            alert('🎉 Selamat! Kamu telah menamatkan Petualangan Aljabar!');
+            showScreen('screen-main-menu');
+          } else {
+            loadRpgStage(gameState.rpgStage - 1);
+          }
+        } else if (gameState.heroHp <= 0) {
+          alert('☠️ HP Kamu habis! Silakan coba lagi.');
+          showScreen('screen-main-menu');
+        } else {
+          nextRpgTurn();
+        }
+      };
+
+      openReviewModal(isCorrect, prob.explanation);
+    }
+
+
+    /* ---------------- SPEED QUIZ MODE ---------------- */
+    function startQuizMode() {
+      gameState.quizScore = 0;
+      gameState.quizStreak = 0;
+      gameState.quizQuestionCount = 0;
+      showScreen('screen-quiz');
+      nextQuizQuestion();
+    }
+
+    function nextQuizQuestion() {
+      if (gameState.quizQuestionCount >= gameState.quizMaxQuestions) {
+        alert(`🏆 Kuis Selesai!\nSkor Akhir: ${gameState.quizScore}`);
+        showScreen('screen-main-menu');
+        return;
+      }
+
+      if (gameState.quizInterval) clearInterval(gameState.quizInterval);
+
+      gameState.quizQuestionCount++;
+      document.getElementById('quiz-progress-text').innerText = `Soal ${gameState.quizQuestionCount} dari ${gameState.quizMaxQuestions}`;
+      document.getElementById('quiz-streak').innerText = `x${1 + gameState.quizStreak * 0.5}`;
+      document.getElementById('quiz-score').innerText = gameState.quizScore;
+
+      const topicSel = document.getElementById('topic-selector').value;
+      gameState.quizCurrentProblem = generateAlgebraProblem(topicSel);
+
+      document.getElementById('quiz-topic-badge').innerText = gameState.quizCurrentProblem.topic;
+      document.getElementById('quiz-question-text').innerText = gameState.quizCurrentProblem.question;
+
+      const grid = document.getElementById('quiz-options-grid');
+      grid.innerHTML = '';
+
+      gameState.quizCurrentProblem.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'p-5 rounded-2xl bg-slate-900/90 hover:bg-emerald-600/30 border border-slate-700 hover:border-emerald-400 font-display font-bold text-white text-xl transition transform hover:-translate-y-0.5 text-center';
+        btn.innerText = opt;
+        btn.onclick = () => handleQuizAnswer(idx);
+        grid.appendChild(btn);
+      });
+
+      gameState.quizTimerVal = 15;
+      document.getElementById('quiz-timer-text').innerText = `Sisa Waktu: ${gameState.quizTimerVal}s`;
+      document.getElementById('quiz-timer-bar').style.width = '100%';
+
+      gameState.quizInterval = setInterval(() => {
+        gameState.quizTimerVal--;
+        document.getElementById('quiz-timer-text').innerText = `Sisa Waktu: ${gameState.quizTimerVal}s`;
+        document.getElementById('quiz-timer-bar').style.width = `${(gameState.quizTimerVal / 15) * 100}%`;
+
+        if (gameState.quizTimerVal <= 0) {
+          clearInterval(gameState.quizInterval);
+          handleQuizAnswer(-1);
+        }
+      }, 1000);
+    }
+
+    function handleQuizAnswer(selectedIdx) {
+      if (gameState.quizInterval) clearInterval(gameState.quizInterval);
+
+      const prob = gameState.quizCurrentProblem;
+      const isCorrect = selectedIdx === prob.correctIndex;
+
+      if (isCorrect) {
+        audio.playCorrect();
+        gameState.quizStreak++;
+        const multiplier = 1 + (gameState.quizStreak - 1) * 0.5;
+        gameState.quizScore += Math.floor(100 * multiplier);
+        addXp(20);
+      } else {
+        audio.playWrong();
+        gameState.quizStreak = 0;
+      }
+
+      gameState.pendingCallback = () => {
+        nextQuizQuestion();
+      };
+
+      openReviewModal(isCorrect, prob.explanation);
+    }
+
+
+    /* ---------------- REVIEW / PEMBAHASAN MODAL ---------------- */
+    function openReviewModal(isCorrect, explanationSteps) {
+      const modal = document.getElementById('modal-review');
+      const icon = document.getElementById('modal-icon');
+      const title = document.getElementById('modal-title');
+      const expBox = document.getElementById('modal-explanation');
+
+      if (isCorrect) {
+        icon.innerText = '🎯';
+        title.innerText = 'Jawaban Tepat!';
+        title.className = 'font-display font-extrabold text-2xl text-emerald-400';
+      } else {
+        icon.innerText = '💡';
+        title.innerText = 'Kurang Tepat';
+        title.className = 'font-display font-extrabold text-2xl text-rose-400';
+      }
+
+      expBox.innerHTML = explanationSteps.map(step => `<div>${step}</div>`).join('');
+      modal.classList.remove('hidden');
+    }
+
+    function closeReviewModal() {
+      document.getElementById('modal-review').classList.add('hidden');
+      if (gameState.pendingCallback) {
+        gameState.pendingCallback();
+        gameState.pendingCallback = null;
+      }
+    }
+
+
+    /* Background Canvas Particles */
+    function initParticles() {
+      const canvas = document.getElementById('particle-canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const particles = [];
+      const symbols = ['x', 'y', '+', '-', '=', '2', '3', 'a²'];
+
+      for (let i = 0; i < 40; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          symbol: symbols[Math.floor(Math.random() * symbols.length)],
+          size: Math.random() * 14 + 10,
+          speedY: Math.random() * 0.6 + 0.2,
+          opacity: Math.random() * 0.3 + 0.1
+        });
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+          p.y -= p.speedY;
+          if (p.y < -20) p.y = canvas.height + 20;
+          ctx.fillStyle = `rgba(139, 92, 246, ${p.opacity})`;
+          ctx.font = `${p.size}px Fredoka`;
+          ctx.fillText(p.symbol, p.x, p.y);
+        });
+        requestAnimationFrame(animate);
+      }
+      animate();
+    }
+
+    window.onload = function() {
+      initParticles();
+    };
+  </script>
+</body>
+</html>
